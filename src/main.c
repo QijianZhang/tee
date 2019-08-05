@@ -58,7 +58,19 @@ int tee_dir(const char *dir_name, uint32_t indent)
 
 int main(int argc, char *argv[])
 {
-	tee_dir(".", 0);
+	const char *dir = ".";
+	for (int i = 1; i < argc; i++) {
+		if (argv[i][0] != '-') {
+			dir = argv[i];
+		} else {
+			printf("tee -- print directory tree\n"
+			       "Usage: tee [dir] [--help]\n"
+			       "current directory is used if dir is omitted\n");
+			return 0;
+		}
+	}
+
+	tee_dir(dir, 0);
 	return 0;
 }
 
