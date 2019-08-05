@@ -31,15 +31,16 @@ char *tee_namecat(const char *dir, const char *name)
 	return r;
 }
 
-int tee_dir(const char *dir_name, uint32_t indent)
+int tee_tree_node(const char *dir, const char *name, uint32_t indent)
 {
+	char *dir_name = tee_namecat(dir, name);
 	DIR *dp = opendir(dir_name);
 	if (dp == NULL) {
 		return 1;
 	}
 
 	tee_indent(indent);
-	puts(dir_name);
+	puts(name);
 
 	indent += 1;
 	struct dirent *e = NULL;
@@ -48,25 +49,62 @@ int tee_dir(const char *dir_name, uint32_t indent)
 			continue;
 		}
 		if (e->d_type == DT_DIR) {
-			char *name = tee_namecat(dir_name, e->d_name);
-			tee_dir(name, indent);
-			free(name);
+			tee_tree_node(dir_name, e->d_name, indent);
 		} else {
 			tee_indent(indent);
 			puts(e->d_name);
 		}
 	}
 
+	free(dir_name);
+	closedir(dp);
+	return 0;
+}
+
+int tee_tree(const char *dir_name)
+{
+	size_t dlen = strlen(dir_name);
+	char *dir = malloc(dlen + 1);
+	strcpy(dir, dir_name);
+
+	while (dlen > 1) {
+		dlen -= 1;
+		if (dir[dlen] == '/') {
+			dir[dlen] = 0;
+		}
+	}
+
+	DIR *dp = opendir(dir);
+	if (dp == NULL) {
+		fprintf(stderr, "Failed to open dir: %s\n", dir_name);
+		return 1;
+	}
+
+	puts(dir);
+	struct dirent *e = NULL;
+	while ((e = readdir(dp)) != NULL) {
+		if (e->d_name[0] == '.') {
+			continue;
+		}
+		if (e->d_type == DT_DIR) {
+			tee_tree_node(dir, e->d_name, 1);
+		} else {
+			tee_indent(1);
+			puts(e->d_name);
+		}
+	}
+
+	free(dir);
 	closedir(dp);
 	return 0;
 }
 
 int main(int argc, char *argv[])
 {
-	const char *dir = ".";
+	const char *name = ".";
 	for (int i = 1; i < argc; i++) {
 		if (argv[i][0] != '-') {
-			dir = argv[i];
+			name = argv[i];
 		} else {
 			printf("tee -- print directory tree\n"
 			       "Usage: tee [dir] [--help]\n"
@@ -75,7 +113,6 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	tee_dir(dir, 0);
-	return 0;
+	return tee_tree(name);
 }
 
