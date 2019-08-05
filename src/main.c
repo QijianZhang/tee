@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <dirent.h>
 
@@ -31,6 +32,14 @@ char *tee_namecat(const char *dir, const char *name)
 	return r;
 }
 
+bool tee_should_skip(const char *name)
+{
+	if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
+		return true;
+	}
+	return false;
+}
+
 int tee_tree_node(const char *dir, const char *name, uint32_t indent)
 {
 	char *dir_name = tee_namecat(dir, name);
@@ -45,7 +54,7 @@ int tee_tree_node(const char *dir, const char *name, uint32_t indent)
 	indent += 1;
 	struct dirent *e = NULL;
 	while ((e = readdir(dp)) != NULL) {
-		if (e->d_name[0] == '.') {
+		if (tee_should_skip(e->d_name)) {
 			continue;
 		}
 		if (e->d_type == DT_DIR) {
@@ -83,7 +92,7 @@ int tee_tree(const char *dir_name)
 	puts(dir);
 	struct dirent *e = NULL;
 	while ((e = readdir(dp)) != NULL) {
-		if (e->d_name[0] == '.') {
+		if (tee_should_skip(e->d_name)) {
 			continue;
 		}
 		if (e->d_type == DT_DIR) {
