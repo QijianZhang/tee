@@ -80,6 +80,8 @@ int tee_tree(const char *dir_name)
 		dlen -= 1;
 		if (dir[dlen] == '/') {
 			dir[dlen] = 0;
+		} else {
+			break;
 		}
 	}
 
