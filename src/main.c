@@ -7,10 +7,15 @@
 
 void tee_indent(uint32_t n)
 {
+	if (n == 0) {
+		return;
+	}
+	n -= 1;
 	while (n) {
 		printf("|  ");
 		n -= 1;
 	}
+	printf("|- ");
 }
 
 char *tee_namecat(const char *dir, const char *name)
@@ -34,7 +39,7 @@ int tee_dir(const char *dir_name, uint32_t indent)
 	}
 
 	tee_indent(indent);
-	printf("|- %s\n", dir_name);
+	puts(dir_name);
 
 	indent += 1;
 	struct dirent *e = NULL;
@@ -48,7 +53,7 @@ int tee_dir(const char *dir_name, uint32_t indent)
 			free(name);
 		} else {
 			tee_indent(indent);
-			printf("|- %s\n", e->d_name);
+			puts(e->d_name);
 		}
 	}
 
