@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(tee C)
+project(dt C)
 
 set(CMAKE_C_STANDARD 11)
 

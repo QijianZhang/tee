@@ -1,4 +1,4 @@
-// tee: a simple tool that prints directory tree
+// dt: a simple tool that prints directory tree
 // Copyright (C) 2019  Qijian Zhang <qijian.zhang@qq.com>
 //
 // This program is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 
-void tee_indent(uint32_t n)
+void dt_indent(uint32_t n)
 {
 	if (n == 0) {
 		return;
@@ -35,7 +35,7 @@ void tee_indent(uint32_t n)
 	printf("|- ");
 }
 
-char *tee_namecat(const char *dir, const char *name)
+char *dt_namecat(const char *dir, const char *name)
 {
 	size_t dir_len = strlen(dir);
 	size_t name_len = strlen(name);
@@ -48,7 +48,7 @@ char *tee_namecat(const char *dir, const char *name)
 	return r;
 }
 
-bool tee_should_skip(const char *name)
+bool dt_should_skip(const char *name)
 {
 	if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
 		return true;
@@ -56,27 +56,27 @@ bool tee_should_skip(const char *name)
 	return false;
 }
 
-int tee_tree_node(const char *dir, const char *name, uint32_t indent)
+int dt_tree_node(const char *dir, const char *name, uint32_t indent)
 {
-	char *dir_name = tee_namecat(dir, name);
+	char *dir_name = dt_namecat(dir, name);
 	DIR *dp = opendir(dir_name);
 	if (dp == NULL) {
 		return 1;
 	}
 
-	tee_indent(indent);
+	dt_indent(indent);
 	puts(name);
 
 	indent += 1;
 	struct dirent *e = NULL;
 	while ((e = readdir(dp)) != NULL) {
-		if (tee_should_skip(e->d_name)) {
+		if (dt_should_skip(e->d_name)) {
 			continue;
 		}
 		if (e->d_type == DT_DIR) {
-			tee_tree_node(dir_name, e->d_name, indent);
+			dt_tree_node(dir_name, e->d_name, indent);
 		} else {
-			tee_indent(indent);
+			dt_indent(indent);
 			puts(e->d_name);
 		}
 	}
@@ -86,7 +86,7 @@ int tee_tree_node(const char *dir, const char *name, uint32_t indent)
 	return 0;
 }
 
-int tee_tree(const char *dir_name)
+int dt_tree(const char *dir_name)
 {
 	size_t dlen = strlen(dir_name);
 	char *dir = malloc(dlen + 1);
@@ -110,13 +110,13 @@ int tee_tree(const char *dir_name)
 	puts(dir);
 	struct dirent *e = NULL;
 	while ((e = readdir(dp)) != NULL) {
-		if (tee_should_skip(e->d_name)) {
+		if (dt_should_skip(e->d_name)) {
 			continue;
 		}
 		if (e->d_type == DT_DIR) {
-			tee_tree_node(dir, e->d_name, 1);
+			dt_tree_node(dir, e->d_name, 1);
 		} else {
-			tee_indent(1);
+			dt_indent(1);
 			puts(e->d_name);
 		}
 	}
@@ -133,13 +133,13 @@ int main(int argc, char *argv[])
 		if (argv[i][0] != '-') {
 			name = argv[i];
 		} else {
-			printf("tee -- print directory tree\n"
-			       "Usage: tee [dir] [--help]\n"
+			printf("dt -- print directory tree\n"
+			       "Usage: dt [dir] [--help]\n"
 			       "current directory is used if dir is omitted\n");
 			return 0;
 		}
 	}
 
-	return tee_tree(name);
+	return dt_tree(name);
 }
 

@@ -1,3 +1,3 @@
-# Tee
+# dt
 
-Tee is a simple tool that prints directory tree.
+dt is a simple tool that prints directory tree.

@@ -1,2 +1,2 @@
 aux_source_directory(. SRC)
-add_executable(tee ${SRC})
+add_executable(dt ${SRC})
