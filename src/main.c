@@ -22,7 +22,14 @@
 #include <sys/types.h>
 #include <dirent.h>
 
-void dt_indent(uint32_t n)
+static void dt_indent(uint32_t n);
+static char *dt_namecat(const char *dir, const char *name);
+static bool dt_should_skip(const char *name);
+static void dt_iter_dir(const char *dir_name, DIR *dp, uint32_t indent);
+static int dt_tree_node(const char *dir, const char *name, uint32_t indent);
+static int dt_tree(const char *dir_name);
+
+static void dt_indent(uint32_t n)
 {
 	if (n == 0) {
 		return;
@@ -35,7 +42,7 @@ void dt_indent(uint32_t n)
 	printf("|- ");
 }
 
-char *dt_namecat(const char *dir, const char *name)
+static char *dt_namecat(const char *dir, const char *name)
 {
 	size_t dir_len = strlen(dir);
 	size_t name_len = strlen(name);
@@ -48,7 +55,7 @@ char *dt_namecat(const char *dir, const char *name)
 	return r;
 }
 
-bool dt_should_skip(const char *name)
+static bool dt_should_skip(const char *name)
 {
 	if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
 		return true;
@@ -56,18 +63,8 @@ bool dt_should_skip(const char *name)
 	return false;
 }
 
-int dt_tree_node(const char *dir, const char *name, uint32_t indent)
+static void dt_iter_dir(const char *dir_name, DIR *dp, uint32_t indent)
 {
-	char *dir_name = dt_namecat(dir, name);
-	DIR *dp = opendir(dir_name);
-	if (dp == NULL) {
-		return 1;
-	}
-
-	dt_indent(indent);
-	puts(name);
-
-	indent += 1;
 	struct dirent *e = NULL;
 	while ((e = readdir(dp)) != NULL) {
 		if (dt_should_skip(e->d_name)) {
@@ -80,13 +77,28 @@ int dt_tree_node(const char *dir, const char *name, uint32_t indent)
 			puts(e->d_name);
 		}
 	}
+}
+
+static int dt_tree_node(const char *dir, const char *name, uint32_t indent)
+{
+	char *dir_name = dt_namecat(dir, name);
+	DIR *dp = opendir(dir_name);
+	if (dp == NULL) {
+		return 1;
+	}
+
+	dt_indent(indent);
+	puts(name);
+
+	indent += 1;
+	dt_iter_dir(dir_name, dp, indent);
 
 	free(dir_name);
 	closedir(dp);
 	return 0;
 }
 
-int dt_tree(const char *dir_name)
+static int dt_tree(const char *dir_name)
 {
 	size_t dlen = strlen(dir_name);
 	char *dir = malloc(dlen + 1);
@@ -108,18 +120,7 @@ int dt_tree(const char *dir_name)
 	}
 
 	puts(dir);
-	struct dirent *e = NULL;
-	while ((e = readdir(dp)) != NULL) {
-		if (dt_should_skip(e->d_name)) {
-			continue;
-		}
-		if (e->d_type == DT_DIR) {
-			dt_tree_node(dir, e->d_name, 1);
-		} else {
-			dt_indent(1);
-			puts(e->d_name);
-		}
-	}
+	dt_iter_dir(dir_name, dp, 1);
 
 	free(dir);
 	closedir(dp);
